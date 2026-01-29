@@ -37,7 +37,6 @@
 ### 👨‍💼 管理员端
 - **数据概览**：
   - 用户统计（总数、患者数、医生数）
-  - 会话统计（总数、进行中、已完成）
   - 处方统计
   - ECharts 可视化图表（医生咨询量统计等）
 - **用户管理**：
@@ -73,14 +72,12 @@
 - **数据库**：MySQL 8.0+
 - **缓存**：Redis（用于 Sa-Token 持久化）
 - **认证授权**：Sa-Token 1.37.0
-  - 支持 JWT Token
   - 基于 Redis 的 Token 存储
   - 基于角色的权限控制（RBAC）
 - **AI 集成**：LangChain4j 0.34.0
   - 支持 OpenAI API（GPT-4o-mini）
   - 支持流式响应（SSE）
-- **实时通信**：WebSocket + STOMP
-- **安全**：Spring Security
+- **实时通信**：WebSocket
 - **工具库**：Lombok
 
 ## 📋 环境要求

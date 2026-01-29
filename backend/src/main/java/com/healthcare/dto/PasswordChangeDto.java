@@ -14,7 +14,6 @@ public class PasswordChangeDto {
     private String oldPassword;
 
     @NotBlank
-    @Size(min = 6, max = 64)
     private String newPassword;
 }
 
