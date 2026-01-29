@@ -19,7 +19,7 @@
         </div>
       </el-tab-pane>
       <el-tab-pane label="我的会话" name="mine">
-        <el-table :data="mine" stripe>
+        <el-table :data="ongoingSessions" stripe>
           <el-table-column prop="id" label="会话ID" width="100" />
           <el-table-column prop="patientName" label="患者" />
           <el-table-column prop="status" label="状态" width="120">
@@ -28,9 +28,34 @@
           <el-table-column prop="updatedAt" label="更新时间" width="180">
             <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="140">
+          <el-table-column label="操作" width="180">
             <template #default="{ row }">
               <el-button type="primary" link @click="openChat(row)">聊天/开药</el-button>
+              <el-button
+                v-if="row.status !== 'FINISHED' && row.status !== 'CLOSED'"
+                type="success"
+                link
+                @click="finishSession(row)"
+              >
+                完成
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+      <el-tab-pane label="已完成" name="done">
+        <el-table :data="finishedSessions" stripe>
+          <el-table-column prop="id" label="会话ID" width="100" />
+          <el-table-column prop="patientName" label="患者" />
+          <el-table-column prop="status" label="状态" width="120">
+            <template #default="{ row }">{{ consultStatusText(row.status) }}</template>
+          </el-table-column>
+          <el-table-column prop="updatedAt" label="更新时间" width="180">
+            <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template #default="{ row }">
+              <el-button type="primary" link @click="openChat(row)">查看对话</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -44,7 +69,7 @@
             :key="m.id"
             :class="['msg', m.senderType === 'DOCTOR' ? 'me' : m.senderType === 'SYSTEM' ? 'sys' : 'other']"
           >
-            <div class="bubble">{{ m.content }}</div>
+            <div class="bubble">{{ renderMessageContent(m) }}</div>
             <div class="time">{{ formatTime(m.createdAt) }}</div>
           </div>
         </div>
@@ -93,11 +118,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { get, post } from '@/api/request'
 import { createStompClient } from '@/api/stomp'
 import { Client } from '@stomp/stompjs'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const activeTab = ref('waiting')
 const waiting = ref<any[]>([])
@@ -128,6 +153,28 @@ const statusMap: Record<string, string> = {
 function consultStatusText(s: string) {
   return statusMap[s] || s || '-'
 }
+
+function renderMessageContent(m: any) {
+  // 系统提示“医生已为您开具处方”在医生端显示成“您已为患者开具处方”，患者端保持原文
+  if (
+    m.senderType === 'SYSTEM' &&
+    typeof m.content === 'string' &&
+    m.content.includes('医生已为您开具处方')
+  ) {
+    return '您已为患者开具处方，患者可前往「问诊记录」查看处方详情。'
+  }
+  return m.content
+}
+const ongoingSessions = computed(() =>
+  mine.value.filter(
+    (s: any) => s.status !== 'FINISHED' && s.status !== 'CLOSED'
+  )
+)
+const finishedSessions = computed(() =>
+  mine.value.filter(
+    (s: any) => s.status === 'FINISHED' || s.status === 'CLOSED'
+  )
+)
 
 // 药品筛选（本地模糊搜索，支持按名称或规格检索）
 function filterDrug(query: string) {
@@ -163,6 +210,26 @@ async function claim(id: number) {
     loadMine()
   } catch (e: any) {
     ElMessage.error(e?.message ?? '认领失败')
+  }
+}
+
+async function finishSession(row: any) {
+  if (row.status === 'FINISHED' || row.status === 'CLOSED') return
+  try {
+    await ElMessageBox.confirm(
+      '确定将该会话标记为已完成吗？',
+      '完成会话',
+      { type: 'warning' }
+    )
+  } catch {
+    return
+  }
+  try {
+    await post(`/doctor/consult/sessions/${row.id}/complete`, {})
+    ElMessage.success('会话已标记为完成')
+    loadMine()
+  } catch (e: any) {
+    ElMessage.error(e?.message ?? '操作失败')
   }
 }
 

@@ -37,6 +37,13 @@ public class PatientConsultController {
         return Result.ok(consultSessionService.getSession(userId, sessionId));
     }
 
+    @PostMapping("/sessions/{sessionId}/close")
+    public Result<Void> closeSession(@PathVariable Long sessionId) {
+        long userId = StpUtil.getLoginIdAsLong();
+        consultSessionService.closeByPatient(userId, sessionId);
+        return Result.ok();
+    }
+
     @GetMapping("/sessions/{sessionId}/messages")
     public Result<List<ConsultSessionService.ConsultMessageVo>> listMessages(@PathVariable Long sessionId) {
         long userId = StpUtil.getLoginIdAsLong();

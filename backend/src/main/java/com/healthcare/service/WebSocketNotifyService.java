@@ -45,4 +45,12 @@ public class WebSocketNotifyService {
         payload.put("type", "CLAIMED");
         messagingTemplate.convertAndSend(TOPIC_CONSULT_PREFIX + sessionId, payload);
     }
+
+    public void notifyStatusChanged(Long sessionId, String status) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("sessionId", sessionId);
+        payload.put("status", status);
+        payload.put("type", "STATUS");
+        messagingTemplate.convertAndSend(TOPIC_CONSULT_PREFIX + sessionId, payload);
+    }
 }

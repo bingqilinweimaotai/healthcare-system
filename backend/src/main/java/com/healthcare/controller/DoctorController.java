@@ -41,6 +41,13 @@ public class DoctorController {
         return Result.ok(consultSessionService.listByDoctor(doctorId));
     }
 
+    @PostMapping("/consult/sessions/{sessionId}/complete")
+    public Result<Void> completeSession(@PathVariable Long sessionId) {
+        long doctorId = StpUtil.getLoginIdAsLong();
+        consultSessionService.completeByDoctor(doctorId, sessionId);
+        return Result.ok();
+    }
+
     @GetMapping("/consult/sessions/{sessionId}")
     public Result<ConsultSessionService.ConsultSessionVo> getSession(@PathVariable Long sessionId) {
         long userId = StpUtil.getLoginIdAsLong();

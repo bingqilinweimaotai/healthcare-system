@@ -29,19 +29,38 @@
           >
             <div class="bubble">{{ m.content }}</div>
             <div class="time">{{ formatTime(m.createdAt) }}</div>
+            <div
+              v-if="
+                m.senderType === 'SYSTEM' &&
+                m.content?.includes('处方') &&
+                canEndSession
+              "
+              class="sys-actions"
+            >
+              <el-button size="small" type="primary" @click="endSessionByPatient">是，结束会话</el-button>
+              <el-button size="small" type="default" plain>继续询问</el-button>
+            </div>
           </div>
         </div>
       </div>
       <div class="input-row">
         <el-input v-model="input" type="textarea" :rows="2" placeholder="输入消息..." @keydown.ctrl.enter="send" />
         <el-button type="primary" :loading="sending" @click="send">发送</el-button>
+        <el-button
+          v-if="canEndSession"
+          type="danger"
+          plain
+          @click="endSessionByPatient"
+        >
+          结束会话
+        </el-button>
       </div>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { get, post } from '@/api/request'
 import { createStompClient } from '@/api/stomp'
@@ -65,6 +84,15 @@ const statusMap: Record<string, string> = {
 function consultStatusText(s: string) {
   return statusMap[s] || s || '-'
 }
+const currentSession = computed(() =>
+  sessions.value.find((s: any) => s.id === currentSessionId.value) || null
+)
+const canEndSession = computed(
+  () =>
+    !!currentSession.value &&
+    currentSession.value.status !== 'FINISHED' &&
+    currentSession.value.status !== 'CLOSED'
+)
 
 async function loadSessions() {
   const list = await get<any[]>('/patient/consult/sessions')
@@ -114,6 +142,19 @@ async function send() {
     ElMessage.error(e?.message ?? '发送失败')
   } finally {
     sending.value = false
+  }
+}
+
+async function endSessionByPatient() {
+  if (!currentSessionId.value) return
+  try {
+    await post(`/patient/consult/sessions/${currentSessionId.value}/close`, {})
+    ElMessage.success('会话已结束')
+    await loadSessions()
+    currentSessionId.value = null
+    messages.value = []
+  } catch (e: any) {
+    ElMessage.error(e?.message ?? '结束会话失败')
   }
 }
 

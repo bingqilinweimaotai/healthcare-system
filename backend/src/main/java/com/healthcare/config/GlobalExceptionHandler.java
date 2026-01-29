@@ -52,6 +52,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<Void>> handleOther(Exception e) {
         log.error("Unhandled exception", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Result.fail(500, "服务器内部错误"));
+                .body(Result.fail(500, e.getMessage() != null ? e.getMessage() : "服务器内部错误"));
     }
 }

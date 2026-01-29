@@ -76,6 +76,58 @@ public class ConsultSessionService {
         notifyService.notifyClaimed(session.getId(), session.getPatientId(), doctorId);
     }
 
+    /**
+     * 医生将会话标记为已完成
+     */
+    @Transactional
+    public void completeByDoctor(Long doctorId, Long sessionId) {
+        ConsultSession session = consultSessionMapper.selectByIdForUpdate(sessionId);
+        if (session == null) throw new RuntimeException("会话不存在");
+        if (session.getDoctorId() == null || !session.getDoctorId().equals(doctorId)) {
+            throw new RuntimeException("仅接诊医生可以完成该会话");
+        }
+        if (session.getStatus() == ConsultSession.ConsultStatus.FINISHED
+                || session.getStatus() == ConsultSession.ConsultStatus.CLOSED) {
+            return;
+        }
+        session.setStatus(ConsultSession.ConsultStatus.FINISHED);
+        consultSessionMapper.update(session);
+
+        ConsultMessage sys = new ConsultMessage();
+        sys.setSessionId(session.getId());
+        sys.setSenderType(ConsultMessage.SenderType.SYSTEM);
+        sys.setSenderId(null);
+        sys.setContent("医生已将本次会话标记为完成，如需继续咨询可发起新的会话。");
+        consultMessageMapper.insert(sys);
+        notifyService.notifyStatusChanged(session.getId(), session.getStatus().name());
+    }
+
+    /**
+     * 患者主动关闭会话
+     */
+    @Transactional
+    public void closeByPatient(Long patientId, Long sessionId) {
+        ConsultSession session = consultSessionMapper.selectByIdForUpdate(sessionId);
+        if (session == null) throw new RuntimeException("会话不存在");
+        if (!session.getPatientId().equals(patientId)) {
+            throw new RuntimeException("仅发起该会话的患者可以结束会话");
+        }
+        if (session.getStatus() == ConsultSession.ConsultStatus.FINISHED
+                || session.getStatus() == ConsultSession.ConsultStatus.CLOSED) {
+            return;
+        }
+        session.setStatus(ConsultSession.ConsultStatus.CLOSED);
+        consultSessionMapper.update(session);
+
+        ConsultMessage sys = new ConsultMessage();
+        sys.setSessionId(session.getId());
+        sys.setSenderType(ConsultMessage.SenderType.SYSTEM);
+        sys.setSenderId(null);
+        sys.setContent("患者已结束本次会话，如需继续请重新发起咨询。");
+        consultMessageMapper.insert(sys);
+        notifyService.notifyStatusChanged(session.getId(), session.getStatus().name());
+    }
+
     public List<ConsultSessionVo> listByPatient(Long patientId) {
         return consultSessionMapper.selectByPatientIdOrderByCreatedAtDesc(patientId).stream()
                 .map(this::toVo)

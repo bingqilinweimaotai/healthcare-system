@@ -1,9 +1,11 @@
 package com.healthcare.service;
 
 import com.healthcare.dto.PrescriptionDto;
+import com.healthcare.entity.ConsultMessage;
 import com.healthcare.entity.Drug;
 import com.healthcare.entity.Prescription;
 import com.healthcare.entity.PrescriptionItem;
+import com.healthcare.mapper.ConsultMessageMapper;
 import com.healthcare.mapper.ConsultSessionMapper;
 import com.healthcare.mapper.DrugMapper;
 import com.healthcare.mapper.PrescriptionItemMapper;
@@ -23,6 +25,8 @@ public class PrescriptionService {
     private final PrescriptionItemMapper prescriptionItemMapper;
     private final ConsultSessionMapper consultSessionMapper;
     private final DrugMapper drugMapper;
+    private final ConsultMessageMapper consultMessageMapper;
+    private final WebSocketNotifyService notifyService;
 
     @Transactional
     public PrescriptionVo create(Long doctorId, PrescriptionDto dto) {
@@ -52,6 +56,17 @@ public class PrescriptionService {
             pi.setFrequency(item.getFrequency());
             prescriptionItemMapper.insert(pi);
         }
+
+        // 写入一条系统消息，提示患者处方已开具
+        ConsultMessage sys = new ConsultMessage();
+        sys.setSessionId(session.getId());
+        sys.setSenderType(ConsultMessage.SenderType.SYSTEM);
+        sys.setSenderId(null);
+        sys.setContent("医生已为您开具处方，可前往「问诊记录」查看处方详情。如无其他问题，您可以结束本次会话。");
+        consultMessageMapper.insert(sys);
+        // 通过 WebSocket 通知会话双方刷新消息
+        notifyService.sendConsultMessage(session.getId(), doctorId, sys.getContent(), false);
+
         return toVo(p);
     }
 
