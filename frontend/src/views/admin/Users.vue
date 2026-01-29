@@ -9,17 +9,17 @@
         </el-select>
         <el-button type="primary" @click="load">查询</el-button>
       </div>
-      <el-table :data="list" stripe style="margin-top:16px">
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="nickname" label="昵称" width="120" />
-        <el-table-column prop="phone" label="手机号" width="140" />
-        <el-table-column prop="role" label="角色" width="100">
+      <el-table :data="list" stripe style="margin-top:16px; width: 100%">
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="nickname" label="昵称" min-width="120" />
+        <el-table-column prop="phone" label="手机号" min-width="140" />
+        <el-table-column prop="role" label="角色" min-width="100">
           <template #default="{ row }">{{ userRoleText(row.role) }}</template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态" min-width="100">
           <template #default="{ row }">{{ userStatusText(row.status) }}</template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="注册时间" width="180">
+        <el-table-column prop="createdAt" label="注册时间" min-width="180">
           <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="220" fixed="right">
@@ -167,6 +167,6 @@ onMounted(load)
 </script>
 
 <style scoped>
-.users { max-width: 1100px; margin: 0 auto; }
+.users { width: 100%; }
 .toolbar { display: flex; gap: 12px; align-items: center; }
 </style>

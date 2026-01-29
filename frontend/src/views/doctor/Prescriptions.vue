@@ -1,9 +1,9 @@
 <template>
   <div class="prescriptions">
-    <el-table :data="list" stripe>
-      <el-table-column prop="id" label="处方ID" width="100" />
-      <el-table-column prop="diagnosis" label="诊断" show-overflow-tooltip />
-      <el-table-column prop="createdAt" label="开具时间" width="180">
+    <el-table :data="list" stripe style="width: 100%">
+      <el-table-column prop="id" label="处方ID" min-width="100" />
+      <el-table-column prop="diagnosis" label="诊断" min-width="200" show-overflow-tooltip />
+      <el-table-column prop="createdAt" label="开具时间" min-width="180">
         <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
       </el-table-column>
       <el-table-column label="操作" width="100">
@@ -53,5 +53,5 @@ onMounted(load)
 </script>
 
 <style scoped>
-.prescriptions { max-width: 900px; margin: 0 auto; }
+.prescriptions { width: 100%; }
 </style>

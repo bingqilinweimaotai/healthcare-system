@@ -6,12 +6,12 @@
         <el-button type="primary" @click="load">查询</el-button>
         <el-button type="success" @click="openEdit(null)">新增药品</el-button>
       </div>
-      <el-table :data="list" stripe style="margin-top:16px">
-        <el-table-column prop="name" label="名称" width="180" />
-        <el-table-column prop="spec" label="规格" width="140" />
-        <el-table-column prop="unit" label="单位" width="80" />
-        <el-table-column prop="usageInstruction" label="用法" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="90">
+      <el-table :data="list" stripe style="margin-top:16px; width: 100%">
+        <el-table-column prop="name" label="名称" min-width="180" />
+        <el-table-column prop="spec" label="规格" min-width="140" />
+        <el-table-column prop="unit" label="单位" min-width="80" />
+        <el-table-column prop="usageInstruction" label="用法" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="status" label="状态" min-width="90">
           <template #default="{ row }">{{ drugStatusText(row.status) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="140" fixed="right">
@@ -136,6 +136,6 @@ onMounted(load)
 </script>
 
 <style scoped>
-.drugs { max-width: 1100px; margin: 0 auto; }
+.drugs { width: 100%; }
 .toolbar { display: flex; gap: 12px; align-items: center; }
 </style>

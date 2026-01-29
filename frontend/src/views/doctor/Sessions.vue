@@ -2,10 +2,10 @@
   <div class="sessions">
     <el-tabs v-model="activeTab">
       <el-tab-pane label="待认领" name="waiting">
-        <el-table :data="waiting" stripe>
-          <el-table-column prop="id" label="会话ID" width="100" />
-          <el-table-column prop="patientName" label="患者" />
-          <el-table-column prop="createdAt" label="创建时间" width="180">
+        <el-table :data="waiting" stripe style="width: 100%">
+          <el-table-column prop="id" label="会话ID" min-width="100" />
+          <el-table-column prop="patientName" label="患者" min-width="150" />
+          <el-table-column prop="createdAt" label="创建时间" min-width="180">
             <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="120">
@@ -19,13 +19,13 @@
         </div>
       </el-tab-pane>
       <el-tab-pane label="我的会话" name="mine">
-        <el-table :data="ongoingSessions" stripe>
-          <el-table-column prop="id" label="会话ID" width="100" />
-          <el-table-column prop="patientName" label="患者" />
-          <el-table-column prop="status" label="状态" width="120">
+        <el-table :data="ongoingSessions" stripe style="width: 100%">
+          <el-table-column prop="id" label="会话ID" min-width="100" />
+          <el-table-column prop="patientName" label="患者" min-width="150" />
+          <el-table-column prop="status" label="状态" min-width="120">
             <template #default="{ row }">{{ consultStatusText(row.status) }}</template>
           </el-table-column>
-          <el-table-column prop="updatedAt" label="更新时间" width="180">
+          <el-table-column prop="updatedAt" label="更新时间" min-width="180">
             <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="180">
@@ -44,13 +44,13 @@
         </el-table>
       </el-tab-pane>
       <el-tab-pane label="已完成" name="done">
-        <el-table :data="finishedSessions" stripe>
-          <el-table-column prop="id" label="会话ID" width="100" />
-          <el-table-column prop="patientName" label="患者" />
-          <el-table-column prop="status" label="状态" width="120">
+        <el-table :data="finishedSessions" stripe style="width: 100%">
+          <el-table-column prop="id" label="会话ID" min-width="100" />
+          <el-table-column prop="patientName" label="患者" min-width="150" />
+          <el-table-column prop="status" label="状态" min-width="120">
             <template #default="{ row }">{{ consultStatusText(row.status) }}</template>
           </el-table-column>
-          <el-table-column prop="updatedAt" label="更新时间" width="180">
+          <el-table-column prop="updatedAt" label="更新时间" min-width="180">
             <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="120">
@@ -312,7 +312,7 @@ watch(chatVisible, (v) => {
 </script>
 
 <style scoped>
-.sessions { max-width: 960px; margin: 0 auto; }
+.sessions { width: 100%; }
 .refresh { margin-top: 12px; }
 .chat-dialog { min-height: 360px; }
 .chat-messages {

@@ -9,18 +9,18 @@
         </el-select>
         <el-button type="primary" @click="load">查询</el-button>
       </div>
-      <el-table :data="list" stripe style="margin-top:16px">
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="realName" label="姓名" width="100" />
-        <el-table-column prop="hospital" label="医院" show-overflow-tooltip />
-        <el-table-column prop="department" label="科室" width="100" />
-        <el-table-column prop="auditStatus" label="审核状态" width="110">
+      <el-table :data="list" stripe style="margin-top:16px; width: 100%">
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="realName" label="姓名" min-width="100" />
+        <el-table-column prop="hospital" label="医院" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="department" label="科室" min-width="120" />
+        <el-table-column prop="auditStatus" label="审核状态" min-width="110">
           <template #default="{ row }">{{ auditStatusText(row.auditStatus) }}</template>
         </el-table-column>
-        <el-table-column prop="userStatus" label="账号状态" width="110">
+        <el-table-column prop="userStatus" label="账号状态" min-width="110">
           <template #default="{ row }">{{ userStatusText(row.userStatus) }}</template>
         </el-table-column>
-        <el-table-column prop="consultCount" label="接诊数" width="90" />
+        <el-table-column prop="consultCount" label="接诊数" min-width="100" align="center" />
         <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="openEdit(row)">编辑</el-button>
@@ -180,6 +180,6 @@ onMounted(load)
 </script>
 
 <style scoped>
-.doctors { max-width: 1100px; margin: 0 auto; }
+.doctors { width: 100%; }
 .toolbar { display: flex; gap: 12px; align-items: center; }
 </style>

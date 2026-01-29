@@ -78,11 +78,14 @@ function renderDoctor() {
   if (!doctorRef.value || !doctorStats.value.byDoctor) return
   doctorChart = echarts.init(doctorRef.value)
   const byDoctor = doctorStats.value.byDoctor ?? []
+  const pieData = byDoctor.map((d: any) => ({
+    name: d.doctorName || `医生${d.doctorId}`,
+    value: d.count,
+  }))
   doctorChart.setOption({
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: byDoctor.map((d: any) => d.doctorName || `医生${d.doctorId}`) },
-    yAxis: { type: 'value', name: '接诊数' },
-    series: [{ name: '接诊数', type: 'bar', data: byDoctor.map((d: any) => d.count) }],
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { type: 'scroll', bottom: 0, left: 'center' },
+    series: [{ name: '接诊数', type: 'pie', radius: ['40%', '70%'], avoidLabelOverlap: true, itemStyle: { borderRadius: 6 }, label: { show: true, formatter: '{b}: {c}' }, data: pieData }],
   })
 }
 
@@ -104,10 +107,8 @@ watch(
       series: [{ data: doctorStats.value.counts ?? [] }],
     })
     const byDoctor = doctorStats.value.byDoctor ?? []
-    doctorChart?.setOption({
-      xAxis: { data: byDoctor.map((d: any) => d.doctorName || `医生${d.doctorId}`) },
-      series: [{ data: byDoctor.map((d: any) => d.count) }],
-    })
+    const pieData = byDoctor.map((d: any) => ({ name: d.doctorName || `医生${d.doctorId}`, value: d.count }))
+    doctorChart?.setOption({ series: [{ data: pieData }] })
   }
 )
 </script>

@@ -2,22 +2,22 @@
   <div class="history">
     <el-tabs v-model="activeTab">
       <el-tab-pane label="人工咨询记录" name="consult">
-        <el-table :data="sessions" stripe>
-          <el-table-column prop="id" label="会话ID" width="100" />
-          <el-table-column prop="status" label="状态" width="120">
+        <el-table :data="sessions" stripe style="width: 100%">
+          <el-table-column prop="id" label="会话ID" min-width="100" />
+          <el-table-column prop="status" label="状态" min-width="120">
             <template #default="{ row }">{{ consultStatusText(row.status) }}</template>
           </el-table-column>
-          <el-table-column prop="doctorName" label="接诊医生" />
-          <el-table-column prop="createdAt" label="创建时间" width="180">
+          <el-table-column prop="doctorName" label="接诊医生" min-width="150" />
+          <el-table-column prop="createdAt" label="创建时间" min-width="180">
             <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
       <el-tab-pane label="处方记录" name="prescription">
-        <el-table :data="prescriptions" stripe>
-          <el-table-column prop="id" label="处方ID" width="100" />
-          <el-table-column prop="diagnosis" label="诊断" show-overflow-tooltip />
-          <el-table-column prop="createdAt" label="开具时间" width="180">
+        <el-table :data="prescriptions" stripe style="width: 100%">
+          <el-table-column prop="id" label="处方ID" min-width="100" />
+          <el-table-column prop="diagnosis" label="诊断" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="createdAt" label="开具时间" min-width="180">
             <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="120">
@@ -83,5 +83,5 @@ onMounted(load)
 </script>
 
 <style scoped>
-.history { max-width: 900px; margin: 0 auto; }
+.history { width: 100%; }
 </style>
