@@ -43,9 +43,10 @@ sa-token:
 langchain4j:
   open-ai:
     chat-model:
-      api-key: ${OPENAI_API_KEY:}
-      model-name: gpt-3.5-turbo
-      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      # 本地明文配置（不要提交到远端仓库）
+      api-key: "sk-yQ59MJJD8AKLzaknl00L4884AmG0rLW7GbTgywpEvIafGGcm"
+      model-name: gpt-4o-mini
+      base-url: https://api.bianxieai.com/v1
 
 logging:
   level:

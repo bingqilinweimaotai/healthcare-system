@@ -13,7 +13,9 @@
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="nickname" label="昵称" width="120" />
         <el-table-column prop="phone" label="手机号" width="140" />
-        <el-table-column prop="role" label="角色" width="100" />
+        <el-table-column prop="role" label="角色" width="100">
+          <template #default="{ row }">{{ userRoleText(row.role) }}</template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">{{ userStatusText(row.status) }}</template>
         </el-table-column>
@@ -66,6 +68,11 @@ const list = ref<any[]>([])
 function userStatusText(s: string) {
   const m: Record<string, string> = { NORMAL: '正常', DISABLED: '禁用', PENDING: '待审核' }
   return m[s] ?? s
+}
+
+function userRoleText(r: string) {
+  const m: Record<string, string> = { PATIENT: '患者', DOCTOR: '医生', ADMIN: '管理员' }
+  return m[r] ?? r
 }
 
 function formatTime(s: string) {

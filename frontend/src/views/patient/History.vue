@@ -4,7 +4,9 @@
       <el-tab-pane label="人工咨询记录" name="consult">
         <el-table :data="sessions" stripe>
           <el-table-column prop="id" label="会话ID" width="100" />
-          <el-table-column prop="status" label="状态" width="120" />
+          <el-table-column prop="status" label="状态" width="120">
+            <template #default="{ row }">{{ consultStatusText(row.status) }}</template>
+          </el-table-column>
           <el-table-column prop="doctorName" label="接诊医生" />
           <el-table-column prop="createdAt" label="创建时间" width="180">
             <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
@@ -50,6 +52,17 @@ const sessions = ref<any[]>([])
 const prescriptions = ref<any[]>([])
 const detail = ref<any>(null)
 const detailVisible = ref(false)
+
+// 会话状态中文文案（枚举：WAITING_CLAIM / IN_PROGRESS / FINISHED / CLOSED）
+const statusMap: Record<string, string> = {
+  WAITING_CLAIM: '待认领',
+  IN_PROGRESS: '进行中',
+  FINISHED: '已完成',
+  CLOSED: '已关闭',
+}
+function consultStatusText(s: string) {
+  return statusMap[s] || s || '-'
+}
 
 function formatTime(s: string) {
   if (!s) return ''

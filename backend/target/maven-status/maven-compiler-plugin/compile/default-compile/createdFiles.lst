@@ -24,6 +24,7 @@ com\healthcare\service\AiConsultService.class
 com\healthcare\controller\AdminController.class
 com\healthcare\common\Result.class
 com\healthcare\config\WebMvcConfig.class
+com\healthcare\service\AiConsultService$StreamInit.class
 com\healthcare\dto\AuthDto.class
 com\healthcare\entity\AiSession$SessionStatus.class
 com\healthcare\entity\AiMessage.class
@@ -35,6 +36,7 @@ com\healthcare\service\WebSocketNotifyService.class
 com\healthcare\service\ConsultSessionService.class
 com\healthcare\mapper\AiSessionMapper.class
 com\healthcare\mapper\DoctorProfileMapper.class
+com\healthcare\service\LangChain4jService$1.class
 com\healthcare\entity\DoctorProfile.class
 com\healthcare\entity\Drug.class
 com\healthcare\controller\DoctorController.class

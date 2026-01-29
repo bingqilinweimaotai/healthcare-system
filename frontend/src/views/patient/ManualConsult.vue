@@ -14,13 +14,13 @@
           <el-option
             v-for="s in sessions"
             :key="s.id"
-            :label="`#${s.id} ${s.status} ${s.patientName || ''}`"
+            :label="`#${s.id} ${consultStatusText(s.status)} ${s.patientName || ''}`"
             :value="s.id"
           />
         </el-select>
       </div>
       <div class="chat">
-        <div v-if="!currentSessionId" class="empty">点击「新咨询」发起咨询，或选择已有会话。医生认领后可回复并开药。</div>
+        <div v-if="!currentSessionId" class="empty">点击「新咨询」发起咨询，或直接在下方输入内容发送，系统会自动创建新会话。医生认领后可回复并开药。</div>
         <div v-else class="messages">
           <div
             v-for="m in messages"
@@ -32,7 +32,7 @@
           </div>
         </div>
       </div>
-      <div v-if="currentSessionId" class="input-row">
+      <div class="input-row">
         <el-input v-model="input" type="textarea" :rows="2" placeholder="输入消息..." @keydown.ctrl.enter="send" />
         <el-button type="primary" :loading="sending" @click="send">发送</el-button>
       </div>
@@ -54,6 +54,17 @@ const input = ref('')
 const sending = ref(false)
 let stomp: Client | null = null
 let sub: any = null
+
+// 会话状态中文文案（枚举：WAITING_CLAIM / IN_PROGRESS / FINISHED / CLOSED）
+const statusMap: Record<string, string> = {
+  WAITING_CLAIM: '待认领',
+  IN_PROGRESS: '进行中',
+  FINISHED: '已完成',
+  CLOSED: '已关闭',
+}
+function consultStatusText(s: string) {
+  return statusMap[s] || s || '-'
+}
 
 async function loadSessions() {
   const list = await get<any[]>('/patient/consult/sessions')

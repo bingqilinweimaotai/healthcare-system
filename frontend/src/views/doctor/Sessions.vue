@@ -22,7 +22,9 @@
         <el-table :data="mine" stripe>
           <el-table-column prop="id" label="会话ID" width="100" />
           <el-table-column prop="patientName" label="患者" />
-          <el-table-column prop="status" label="状态" width="120" />
+          <el-table-column prop="status" label="状态" width="120">
+            <template #default="{ row }">{{ consultStatusText(row.status) }}</template>
+          </el-table-column>
           <el-table-column prop="updatedAt" label="更新时间" width="180">
             <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
           </el-table-column>
@@ -55,20 +57,29 @@
         </div>
       </div>
     </el-dialog>
-    <el-dialog v-model="rxVisible" title="开具处方" width="560" destroy-on-close>
-      <el-form ref="rxFormRef" :model="rxForm" label-width="100px">
+    <el-dialog v-model="rxVisible" title="开具处方" width="640" destroy-on-close>
+      <el-form ref="rxFormRef" :model="rxForm" label-width="90px" class="rx-form">
         <el-form-item label="诊断">
           <el-input v-model="rxForm.diagnosis" type="textarea" :rows="2" placeholder="诊断结论" />
         </el-form-item>
         <el-form-item label="药品">
-          <div v-for="(it, idx) in rxForm.items" :key="idx" class="rx-row">
-            <el-select v-model="it.drugId" placeholder="选择药品" filterable style="width:200px">
-              <el-option v-for="d in drugs" :key="d.id" :label="`${d.name} ${d.spec}`" :value="d.id" />
-            </el-select>
-            <el-input-number v-model="it.quantity" :min="1" :max="99" style="width:100px" />
-            <el-input v-model="it.dosage" placeholder="用法" style="width:120px" />
-            <el-input v-model="it.frequency" placeholder="频次" style="width:100px" />
-            <el-button link type="danger" @click="rxForm.items.splice(idx,1)">删</el-button>
+          <div class="rx-list">
+            <div v-for="(it, idx) in rxForm.items" :key="idx" class="rx-row">
+              <el-select
+                v-model="it.drugId"
+                placeholder="选择药品"
+                filterable
+                clearable
+                :filter-method="filterDrug"
+                style="width:220px"
+              >
+                <el-option v-for="d in filteredDrugs" :key="d.id" :label="`${d.name} ${d.spec}`" :value="d.id" />
+              </el-select>
+              <el-input-number v-model="it.quantity" :min="1" :max="99" style="width:90px" />
+              <el-input v-model="it.dosage" placeholder="用法" style="width:130px" />
+              <el-input v-model="it.frequency" placeholder="频次" style="width:110px" />
+              <el-button link type="danger" @click="rxForm.items.splice(idx,1)">删</el-button>
+            </div>
           </div>
           <el-button type="primary" link @click="rxForm.items.push({ drugId: null, quantity: 1, dosage: '', frequency: '' })">+ 添加药品</el-button>
         </el-form-item>
@@ -99,12 +110,38 @@ const sending = ref(false)
 const rxVisible = ref(false)
 const prescribing = ref(false)
 const drugs = ref<any[]>([])
+const filteredDrugs = ref<any[]>([])
 const rxForm = ref<{ diagnosis: string; items: { drugId: number | null; quantity: number; dosage: string; frequency: string }[] }>({
   diagnosis: '',
   items: [{ drugId: null, quantity: 1, dosage: '', frequency: '' }],
 })
 let stomp: Client | null = null
 let sub: any = null
+
+// 会话状态中文文案（枚举：WAITING_CLAIM / IN_PROGRESS / FINISHED / CLOSED）
+const statusMap: Record<string, string> = {
+  WAITING_CLAIM: '待认领',
+  IN_PROGRESS: '进行中',
+  FINISHED: '已完成',
+  CLOSED: '已关闭',
+}
+function consultStatusText(s: string) {
+  return statusMap[s] || s || '-'
+}
+
+// 药品筛选（本地模糊搜索，支持按名称或规格检索）
+function filterDrug(query: string) {
+  if (!query) {
+    filteredDrugs.value = drugs.value
+    return
+  }
+  const q = query.toLowerCase()
+  filteredDrugs.value = drugs.value.filter(
+    (d: any) =>
+      (d.name && d.name.toLowerCase().includes(q)) ||
+      (d.spec && d.spec.toLowerCase().includes(q))
+  )
+}
 
 function formatTime(s: string) {
   if (!s) return ''
@@ -189,7 +226,10 @@ async function submitPrescription() {
 onMounted(() => {
   loadWaiting()
   loadMine()
-  get<any[]>('/doctor/drugs').then((r) => { drugs.value = r ?? [] })
+  get<any[]>('/doctor/drugs').then((r) => {
+    drugs.value = r ?? []
+    filteredDrugs.value = drugs.value
+  })
   stomp = createStompClient()
   stomp.onConnect = () => {
     stomp?.subscribe('/topic/new-consult', () => loadWaiting())
@@ -231,5 +271,20 @@ watch(chatVisible, (v) => {
 .msg.sys .bubble { background: #feebc8; color: #744210; }
 .time { font-size: 12px; color: #a0aec0; margin-top: 4px; }
 .chat-input .actions { margin-top: 8px; }
-.rx-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.rx-form {
+  max-height: 420px;
+  overflow-y: auto;
+}
+.rx-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.rx-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  min-width: 0;
+}
 </style>

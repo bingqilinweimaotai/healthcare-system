@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +23,16 @@ public class AiConsultService {
     private final LangChain4jService langChain4jService;
 
     private static final String SYSTEM_PROMPT = "你是一名医疗咨询助手。请根据用户描述的症状给予初步的健康建议，并提醒用户：本建议仅供参考，不能替代线下就医。如有急症或持续不适，请及时到正规医院就诊。不要直接开具处方或替代医生诊断。";
+
+    @lombok.Data
+    public static class StreamInit {
+        private Long sessionId;
+        /**
+         * 不包含本次 userInput 的历史消息（避免重复拼接 userInput）。
+         */
+        private List<AiMessage> history;
+        private String userInput;
+    }
 
     @Transactional
     public AiConsultResult consult(Long userId, Long sessionId, String content) {
@@ -37,13 +48,15 @@ public class AiConsultService {
             if (!session.getUserId().equals(userId)) throw new RuntimeException("无权限操作该会话");
         }
 
+        // 先取历史（不含本次输入），避免 userInput 在 prompt 中重复出现
+        List<AiMessage> history = aiMessageMapper.selectBySessionIdOrderByCreatedAtAsc(session.getId());
+
         AiMessage userMsg = new AiMessage();
         userMsg.setSessionId(session.getId());
         userMsg.setSender(AiMessage.Sender.USER);
         userMsg.setContent(content);
         aiMessageMapper.insert(userMsg);
 
-        List<AiMessage> history = aiMessageMapper.selectBySessionIdOrderByCreatedAtAsc(session.getId());
         String reply = langChain4jService.chat(SYSTEM_PROMPT, history, content);
 
         AiMessage aiMsg = new AiMessage();
@@ -57,6 +70,62 @@ public class AiConsultService {
         result.setUserMessage(content);
         result.setAiReply(reply);
         return result;
+    }
+
+    /**
+     * 初始化一次流式会话：创建/校验 session、保存用户消息、并返回历史消息（不含本次输入）。
+     */
+    @Transactional
+    public StreamInit initStream(Long userId, Long sessionId, String content) {
+        AiSession session;
+        if (sessionId == null || sessionId <= 0) {
+            session = new AiSession();
+            session.setUserId(userId);
+            session.setStatus(AiSession.SessionStatus.ONGOING);
+            aiSessionMapper.insert(session);
+        } else {
+            session = aiSessionMapper.selectById(sessionId);
+            if (session == null) throw new RuntimeException("会话不存在");
+            if (!session.getUserId().equals(userId)) throw new RuntimeException("无权限操作该会话");
+        }
+
+        List<AiMessage> history = aiMessageMapper.selectBySessionIdOrderByCreatedAtAsc(session.getId());
+
+        AiMessage userMsg = new AiMessage();
+        userMsg.setSessionId(session.getId());
+        userMsg.setSender(AiMessage.Sender.USER);
+        userMsg.setContent(content);
+        aiMessageMapper.insert(userMsg);
+
+        StreamInit init = new StreamInit();
+        init.setSessionId(session.getId());
+        init.setHistory(history);
+        init.setUserInput(content);
+        return init;
+    }
+
+    /**
+     * 流式生成 AI 回复。生成完成后会把 AI 消息落库。
+     */
+    public void streamReply(StreamInit init,
+                            Consumer<String> onPartial,
+                            Consumer<String> onComplete,
+                            Consumer<Throwable> onError) {
+        langChain4jService.chatStream(
+                SYSTEM_PROMPT,
+                init.getHistory(),
+                init.getUserInput(),
+                onPartial,
+                full -> {
+                    AiMessage aiMsg = new AiMessage();
+                    aiMsg.setSessionId(init.getSessionId());
+                    aiMsg.setSender(AiMessage.Sender.AI);
+                    aiMsg.setContent(full);
+                    aiMessageMapper.insert(aiMsg);
+                    onComplete.accept(full);
+                },
+                onError
+        );
     }
 
     public List<AiSessionVo> listSessions(Long userId) {
