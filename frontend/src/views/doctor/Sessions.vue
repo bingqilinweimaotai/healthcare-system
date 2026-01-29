@@ -300,6 +300,8 @@ onMounted(() => {
   stomp = createStompClient()
   stomp.onConnect = () => {
     stomp?.subscribe('/topic/new-consult', () => loadWaiting())
+    // 会话状态变化（患者结束会话 / 医生完成会话）
+    stomp?.subscribe('/topic/consult-status', () => loadMine())
   }
   stomp.activate()
 })

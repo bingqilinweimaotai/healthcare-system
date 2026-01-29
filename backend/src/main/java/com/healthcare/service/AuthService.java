@@ -44,6 +44,7 @@ public class AuthService {
         result.put("username", user.getUsername());
         result.put("role", user.getRole().name());
         result.put("nickname", user.getNickname());
+        result.put("avatar", user.getAvatar());
         return result;
     }
 

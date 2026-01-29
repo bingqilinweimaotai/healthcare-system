@@ -32,26 +32,107 @@
       <el-header class="header">
         <span class="title">{{ pageTitle }}</span>
         <div class="user">
-          <span>{{ auth.nickname || auth.username }}</span>
-          <el-button type="danger" link @click="handleLogout">退出</el-button>
+          <el-dropdown @command="handleUserCommand">
+            <span class="user-trigger">
+              <el-avatar
+                :size="32"
+                :src="auth.avatar || defaultAvatar"
+              >
+                {{ (auth.nickname || auth.username || '?').charAt(0).toUpperCase() }}
+              </el-avatar>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </el-header>
       <el-main class="main">
         <router-view />
+
+        <el-dialog v-model="profileVisible" title="个人信息" width="520px" destroy-on-close>
+          <el-form :model="profileForm" label-width="90px" v-loading="profileLoading">
+            <el-form-item label="用户名">
+              <el-input v-model="profileForm.username" disabled />
+            </el-form-item>
+            <el-form-item label="昵称">
+              <el-input v-model="profileForm.nickname" />
+            </el-form-item>
+            <el-form-item label="手机号">
+              <el-input v-model="profileForm.phone" />
+            </el-form-item>
+            <el-form-item label="头像链接">
+              <el-input v-model="profileForm.avatar" placeholder="请输入头像图片的网络地址" />
+            </el-form-item>
+            <template v-if="auth.role === 'DOCTOR'">
+              <el-form-item label="姓名">
+                <el-input v-model="profileForm.realName" />
+              </el-form-item>
+              <el-form-item label="医院">
+                <el-input v-model="profileForm.hospital" />
+              </el-form-item>
+              <el-form-item label="科室">
+                <el-input v-model="profileForm.department" />
+              </el-form-item>
+              <el-form-item label="职称">
+                <el-input v-model="profileForm.title" />
+              </el-form-item>
+              <el-form-item label="审核状态" v-if="profileForm.auditStatus">
+                <el-tag size="small">{{ profileForm.auditStatus }}</el-tag>
+              </el-form-item>
+            </template>
+            <el-divider />
+            <el-form-item label="原密码">
+              <el-input v-model="passwordForm.oldPassword" type="password" show-password />
+            </el-form-item>
+            <el-form-item label="新密码">
+              <el-input v-model="passwordForm.newPassword" type="password" show-password />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button @click="profileVisible = false">取 消</el-button>
+            <el-button type="primary" :loading="savingProfile" @click="saveProfile">保存</el-button>
+          </template>
+        </el-dialog>
       </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { post } from '@/api/request'
+import { get, post, put } from '@/api/request'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+
+const defaultAvatar = 'https://avatars.dicebear.com/api/identicon/ai-healthcare.svg'
+
+const profileVisible = ref(false)
+const profileLoading = ref(false)
+const savingProfile = ref(false)
+const profileForm = reactive<any>({
+  username: '',
+  nickname: '',
+  phone: '',
+  avatar: '',
+  realName: '',
+  hospital: '',
+  department: '',
+  title: '',
+  auditStatus: '',
+})
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+})
 
 const pageTitle = computed(() => {
   const m: Record<string, string> = {
@@ -75,6 +156,70 @@ async function handleLogout() {
   auth.logout()
   router.replace('/login')
 }
+
+async function openProfile() {
+  profileVisible.value = true
+  profileLoading.value = true
+  try {
+    const data = await get<any>('/user/profile')
+    profileForm.username = data.username
+    profileForm.nickname = data.nickname
+    profileForm.phone = data.phone
+    profileForm.avatar = data.avatar
+    profileForm.realName = data.realName
+    profileForm.hospital = data.hospital
+    profileForm.department = data.department
+    profileForm.title = data.title
+    profileForm.auditStatus = data.auditStatus
+    // 同步 store 中昵称和头像，避免保存前头像显示为空
+    if (data.nickname) auth.nickname = data.nickname
+    if (data.avatar) auth.avatar = data.avatar
+  } catch (e: any) {
+    ElMessage.error(e?.message ?? '加载个人信息失败')
+  } finally {
+    profileLoading.value = false
+  }
+}
+
+async function saveProfile() {
+  savingProfile.value = true
+  try {
+    await put('/user/profile', {
+      nickname: profileForm.nickname,
+      phone: profileForm.phone,
+      avatar: profileForm.avatar,
+      realName: auth.role === 'DOCTOR' ? profileForm.realName : undefined,
+      hospital: auth.role === 'DOCTOR' ? profileForm.hospital : undefined,
+      department: auth.role === 'DOCTOR' ? profileForm.department : undefined,
+      title: auth.role === 'DOCTOR' ? profileForm.title : undefined,
+    })
+    if (passwordForm.oldPassword && passwordForm.newPassword) {
+      await put('/user/password', {
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword,
+      })
+      passwordForm.oldPassword = ''
+      passwordForm.newPassword = ''
+    }
+    // 更新本地显示
+    auth.nickname = profileForm.nickname || auth.username
+    auth.avatar = profileForm.avatar || ''
+    ElMessage.success('保存成功')
+    profileVisible.value = false
+  } catch (e: any) {
+    ElMessage.error(e?.message ?? '保存失败')
+  } finally {
+    savingProfile.value = false
+  }
+}
+
+function handleUserCommand(cmd: string) {
+  if (cmd === 'logout') {
+    handleLogout()
+  } else if (cmd === 'profile') {
+    openProfile()
+  }
+}
 </script>
 
 <style scoped>
@@ -91,5 +236,6 @@ async function handleLogout() {
 }
 .title { font-size: 1.1rem; font-weight: 600; }
 .user { display: flex; align-items: center; gap: 12px; }
+.user-trigger { cursor: pointer; display: inline-flex; align-items: center; }
 .main { background: #f7fafc; padding: 24px; overflow: auto; }
 </style>

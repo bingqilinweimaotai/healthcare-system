@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS sys_user (
     password VARCHAR(128) NOT NULL,
     phone VARCHAR(32),
     nickname VARCHAR(64),
+    avatar VARCHAR(255),
     role VARCHAR(24) NOT NULL DEFAULT 'PATIENT',
     status VARCHAR(24) NOT NULL DEFAULT 'NORMAL',
     created_at DATETIME,

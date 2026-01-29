@@ -17,6 +17,7 @@ public class WebSocketNotifyService {
 
     public static final String TOPIC_NEW_CONSULT = "/topic/new-consult";
     public static final String TOPIC_CONSULT_PREFIX = "/topic/consult/";
+    public static final String TOPIC_CONSULT_STATUS = "/topic/consult-status";
 
     public void broadcastNewConsult(Long sessionId, String contentPreview, Long patientId) {
         Map<String, Object> payload = new HashMap<>();
@@ -51,6 +52,9 @@ public class WebSocketNotifyService {
         payload.put("sessionId", sessionId);
         payload.put("status", status);
         payload.put("type", "STATUS");
+        // 会话内订阅者（患者/正在查看该会话的医生）
         messagingTemplate.convertAndSend(TOPIC_CONSULT_PREFIX + sessionId, payload);
+        // 医生端全局会话管理列表
+        messagingTemplate.convertAndSend(TOPIC_CONSULT_STATUS, payload);
     }
 }

@@ -15,6 +15,10 @@ public class User {
     private String password;
     private String phone;
     private String nickname;
+    /**
+     * 头像 URL，可为空，前端使用网络地址展示头像
+     */
+    private String avatar;
     private Role role = Role.PATIENT;
     private UserStatus status = UserStatus.NORMAL;
     private LocalDateTime createdAt;

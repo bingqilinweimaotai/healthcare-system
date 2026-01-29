@@ -8,6 +8,7 @@
         <result column="password" property="password"/>
         <result column="phone" property="phone"/>
         <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
         <result column="role" property="role" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result column="status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result column="created_at" property="createdAt"/>
@@ -15,13 +16,14 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_user (username, password, phone, nickname, role, status, created_at, updated_at)
-        VALUES (#{username}, #{password}, #{phone}, #{nickname}, #{role}, #{status}, NOW(), NOW())
+        INSERT INTO sys_user (username, password, phone, nickname, avatar, role, status, created_at, updated_at)
+        VALUES (#{username}, #{password}, #{phone}, #{nickname}, #{avatar}, #{role}, #{status}, NOW(), NOW())
     </insert>
 
     <update id="update">
         UPDATE sys_user
         SET username = #{username}, password = #{password}, phone = #{phone}, nickname = #{nickname},
+            avatar = #{avatar},
             role = #{role}, status = #{status}, updated_at = NOW()
         WHERE id = #{id}
     </update>
