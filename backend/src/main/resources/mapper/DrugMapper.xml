@@ -8,20 +8,21 @@
         <result column="spec" property="spec"/>
         <result column="unit" property="unit"/>
         <result column="usage_instruction" property="usageInstruction"/>
+        <result column="image_url" property="imageUrl"/>
         <result column="status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO drug (name, spec, unit, usage_instruction, status, created_at, updated_at)
-        VALUES (#{name}, #{spec}, #{unit}, #{usageInstruction}, #{status}, NOW(), NOW())
+        INSERT INTO drug (name, spec, unit, usage_instruction, image_url, status, created_at, updated_at)
+        VALUES (#{name}, #{spec}, #{unit}, #{usageInstruction}, #{imageUrl}, #{status}, NOW(), NOW())
     </insert>
 
     <update id="update">
         UPDATE drug
         SET name = #{name}, spec = #{spec}, unit = #{unit}, usage_instruction = #{usageInstruction},
-            status = #{status}, updated_at = NOW()
+            image_url = #{imageUrl}, status = #{status}, updated_at = NOW()
         WHERE id = #{id}
     </update>
 

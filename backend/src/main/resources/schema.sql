@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS drug (
     spec VARCHAR(64),
     unit VARCHAR(32),
     usage_instruction VARCHAR(256),
+    image_url VARCHAR(512),
     status VARCHAR(24) NOT NULL DEFAULT 'ACTIVE',
     created_at DATETIME,
     updated_at DATETIME

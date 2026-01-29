@@ -9,9 +9,11 @@ import com.healthcare.dto.DrugDto;
 import com.healthcare.entity.DoctorProfile;
 import com.healthcare.entity.User;
 import com.healthcare.service.AdminService;
+import com.healthcare.service.CosService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -22,6 +24,7 @@ import java.util.Map;
 public class AdminController {
 
     private final AdminService adminService;
+    private final CosService cosService;
 
     @GetMapping("/users")
     @SaCheckPermission("admin:user:list")
@@ -95,6 +98,12 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword) {
         return Result.ok(adminService.listDrugs(page, size, keyword));
+    }
+
+    @PostMapping("/drugs/upload")
+    @SaCheckPermission("admin:drug:update")
+    public Result<String> uploadDrugImage(@RequestPart("file") MultipartFile file) {
+        return Result.ok(cosService.uploadDrugImage(file));
     }
 
     @PostMapping("/drugs")

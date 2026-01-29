@@ -86,6 +86,34 @@ public class CosService implements DisposableBean {
         }
     }
 
+    /**
+     * 上传药品图片，返回公网可访问的 URL
+     */
+    public String uploadDrugImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("文件不能为空");
+        }
+        String original = file.getOriginalFilename();
+        String suffix = "";
+        if (original != null && original.contains(".")) {
+            suffix = original.substring(original.lastIndexOf("."));
+        }
+        String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String key = "drug/" + datePath + "/" + UUID.randomUUID() + suffix;
+        try {
+            ObjectMetadata meta = new ObjectMetadata();
+            meta.setContentLength(file.getSize());
+            meta.setContentType(file.getContentType());
+            PutObjectRequest req = new PutObjectRequest(bucket, key, file.getInputStream(), meta);
+            client().putObject(req);
+            String domain = publicDomain.endsWith("/") ? publicDomain.substring(0, publicDomain.length() - 1) : publicDomain;
+            return domain + "/" + key;
+        } catch (IOException | CosClientException e) {
+            log.error("Upload drug image to COS failed", e);
+            throw new RuntimeException("上传药品图片失败，请稍后重试");
+        }
+    }
+
     @Override
     public void destroy() {
         if (client != null) {

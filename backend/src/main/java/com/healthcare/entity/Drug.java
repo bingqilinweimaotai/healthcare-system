@@ -15,6 +15,7 @@ public class Drug {
     private String spec;
     private String unit;
     private String usageInstruction;
+    private String imageUrl;
     private DrugStatus status = DrugStatus.ACTIVE;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

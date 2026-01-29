@@ -7,6 +7,18 @@
         <el-button type="success" @click="openEdit(null)">新增药品</el-button>
       </div>
       <el-table :data="list" stripe style="margin-top:16px; width: 100%">
+        <el-table-column label="图片" width="80" align="center">
+          <template #default="{ row }">
+            <el-image
+              v-if="row.imageUrl"
+              :src="row.imageUrl"
+              fit="cover"
+              style="width:48px;height:48px;border-radius:6px"
+              :preview-src-list="[row.imageUrl]"
+            />
+            <span v-else class="no-image">暂无</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="名称" min-width="180" />
         <el-table-column prop="spec" label="规格" min-width="140" />
         <el-table-column prop="unit" label="单位" min-width="80" />
@@ -40,6 +52,27 @@
     </el-card>
     <el-dialog v-model="editVisible" :title="editing?.id ? '编辑药品' : '新增药品'" width="500" destroy-on-close>
       <el-form ref="formRef" :model="form" label-width="100px">
+        <el-form-item label="图片">
+          <div class="drug-image-row">
+            <el-image
+              v-if="form.imageUrl"
+              :src="form.imageUrl"
+              fit="cover"
+              style="width:80px;height:80px;border-radius:8px"
+              :preview-src-list="[form.imageUrl]"
+            />
+            <div v-else class="drug-image-placeholder">暂无图片</div>
+            <el-upload
+              class="drug-image-upload"
+              :show-file-list="false"
+              :http-request="handleDrugImageUpload"
+              accept="image/*"
+            >
+              <el-button type="primary" link>{{ form.imageUrl ? '更换图片' : '上传图片' }}</el-button>
+            </el-upload>
+            <el-button v-if="form.imageUrl" type="danger" link @click="form.imageUrl = ''">移除</el-button>
+          </div>
+        </el-form-item>
         <el-form-item label="名称" required>
           <el-input v-model="form.name" placeholder="药品名称" />
         </el-form-item>
@@ -74,7 +107,7 @@ const list = ref<any[]>([])
 const editVisible = ref(false)
 const editing = ref<any>(null)
 const saving = ref(false)
-const form = reactive({ name: '', spec: '', unit: '', usageInstruction: '' })
+const form = reactive({ name: '', spec: '', unit: '', usageInstruction: '', imageUrl: '' })
 
 function drugStatusText(s: string) {
   const m: Record<string, string> = { ACTIVE: '启用', DISABLED: '禁用' }
@@ -97,6 +130,7 @@ function openEdit(row: any) {
   form.spec = row?.spec ?? ''
   form.unit = row?.unit ?? ''
   form.usageInstruction = row?.usageInstruction ?? ''
+  form.imageUrl = row?.imageUrl ?? ''
   editVisible.value = true
 }
 
@@ -122,6 +156,24 @@ async function submit() {
   }
 }
 
+async function handleDrugImageUpload(option: any) {
+  const file = option.file as File
+  if (!file) return
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const url = await post<string>('/admin/drugs/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    form.imageUrl = url
+    ElMessage.success('图片上传成功')
+  } catch (e: any) {
+    ElMessage.error(e?.message ?? '图片上传失败')
+  } finally {
+    option.onSuccess?.({}, file)
+  }
+}
+
 async function updateStatus(row: any, status: string) {
   try {
     await put(`/admin/drugs/${row.id}`, { ...row, status })
@@ -138,4 +190,8 @@ onMounted(load)
 <style scoped>
 .drugs { width: 100%; }
 .toolbar { display: flex; gap: 12px; align-items: center; }
+.no-image { color: var(--el-text-color-secondary); font-size: 12px; }
+.drug-image-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.drug-image-placeholder { width: 80px; height: 80px; border: 1px dashed var(--el-border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--el-text-color-secondary); font-size: 12px; }
+.drug-image-upload { margin: 0; }
 </style>

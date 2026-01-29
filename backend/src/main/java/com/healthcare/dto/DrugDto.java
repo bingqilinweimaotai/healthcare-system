@@ -10,5 +10,6 @@ public class DrugDto {
     private String spec;
     private String unit;
     private String usageInstruction;
+    private String imageUrl;
     private String status;
 }

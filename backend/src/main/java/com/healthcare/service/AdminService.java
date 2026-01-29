@@ -189,6 +189,7 @@ public class AdminService {
         d.setSpec(dto.getSpec());
         d.setUnit(dto.getUnit());
         d.setUsageInstruction(dto.getUsageInstruction());
+        d.setImageUrl(dto.getImageUrl());
         d.setStatus(Drug.DrugStatus.ACTIVE);
         drugMapper.insert(d);
         return d;
@@ -202,6 +203,7 @@ public class AdminService {
         if (dto.getSpec() != null) d.setSpec(dto.getSpec());
         if (dto.getUnit() != null) d.setUnit(dto.getUnit());
         if (dto.getUsageInstruction() != null) d.setUsageInstruction(dto.getUsageInstruction());
+        if (dto.getImageUrl() != null) d.setImageUrl(dto.getImageUrl());
         if (dto.getStatus() != null) d.setStatus(Drug.DrugStatus.valueOf(dto.getStatus()));
         drugMapper.update(d);
         return d;
