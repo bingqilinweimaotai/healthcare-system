@@ -1,5 +1,7 @@
 package com.healthcare.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import com.healthcare.common.Result;
 import com.healthcare.dto.AiConsultDto;
@@ -19,11 +21,13 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/ai")
 @RequiredArgsConstructor
 @Slf4j
+@SaCheckRole("PATIENT")
 public class AiConsultController {
 
     private final AiConsultService aiConsultService;
 
     @PostMapping("/consult")
+    @SaCheckPermission("patient:consult:create")
     public Result<AiConsultService.AiConsultResult> consult(@Valid @RequestBody AiConsultDto dto) {
         long userId = StpUtil.getLoginIdAsLong();
         return Result.ok(aiConsultService.consult(userId, dto.getSessionId(), dto.getContent()));
@@ -34,6 +38,7 @@ public class AiConsultController {
      * 前端用 fetch 读取流即可（EventSource 只支持 GET，不适合带 body）。
      */
     @PostMapping(value = "/consult/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @SaCheckPermission("patient:consult:create")
     public SseEmitter consultStream(@Valid @RequestBody AiConsultDto dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SseEmitter emitter = new SseEmitter(0L);
@@ -86,6 +91,7 @@ public class AiConsultController {
     }
 
     @GetMapping("/sessions")
+    @SaCheckPermission("patient:consult:list")
     public Result<List<AiConsultService.AiSessionVo>> listSessions() {
         long userId = StpUtil.getLoginIdAsLong();
         return Result.ok(aiConsultService.listSessions(userId));

@@ -1,5 +1,6 @@
 package com.healthcare.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.healthcare.common.Result;
 import com.healthcare.dto.DrugDto;
@@ -21,6 +22,7 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/users")
+    @SaCheckPermission("admin:user:list")
     public Result<Page<AdminService.UserVo>> listUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -35,12 +37,14 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/status")
+    @SaCheckPermission("admin:user:update")
     public Result<Void> updateUserStatus(@PathVariable Long id, @RequestParam String status) {
         adminService.updateUserStatus(id, User.UserStatus.valueOf(status));
         return Result.ok();
     }
 
     @GetMapping("/doctors")
+    @SaCheckPermission("admin:doctor:list")
     public Result<Page<AdminService.DoctorVo>> listDoctors(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -55,6 +59,7 @@ public class AdminController {
     }
 
     @PutMapping("/doctors/{id}/audit")
+    @SaCheckPermission("admin:doctor:update")
     public Result<Void> updateDoctorAudit(@PathVariable Long id, @RequestParam String status) {
         adminService.updateDoctorAudit(id, DoctorProfile.AuditStatus.valueOf(status));
         return Result.ok();
@@ -68,6 +73,7 @@ public class AdminController {
     }
 
     @GetMapping("/drugs")
+    @SaCheckPermission("admin:drug:list")
     public Result<Page<com.healthcare.entity.Drug>> listDrugs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -76,16 +82,19 @@ public class AdminController {
     }
 
     @PostMapping("/drugs")
+    @SaCheckPermission("admin:drug:update")
     public Result<com.healthcare.entity.Drug> createDrug(@RequestBody DrugDto dto) {
         return Result.ok(adminService.createDrug(dto));
     }
 
     @PutMapping("/drugs/{id}")
+    @SaCheckPermission("admin:drug:update")
     public Result<com.healthcare.entity.Drug> updateDrug(@PathVariable Long id, @RequestBody DrugDto dto) {
         return Result.ok(adminService.updateDrug(id, dto));
     }
 
     @GetMapping("/stats/overview")
+    @SaCheckPermission("admin:dashboard")
     public Result<Map<String, Object>> statsOverview() {
         return Result.ok(adminService.statsOverview());
     }

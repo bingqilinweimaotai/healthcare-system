@@ -1,5 +1,7 @@
 package com.healthcare.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import com.healthcare.common.Result;
 import com.healthcare.dto.ManualConsultDto;
@@ -17,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/doctor")
 @RequiredArgsConstructor
+@SaCheckRole("DOCTOR")
 public class DoctorController {
 
     private final ConsultSessionService consultSessionService;
@@ -24,11 +27,13 @@ public class DoctorController {
     private final DrugMapper drugMapper;
 
     @GetMapping("/consult/waiting")
+    @SaCheckPermission("doctor:consult:list")
     public Result<List<ConsultSessionService.ConsultSessionVo>> listWaiting() {
         return Result.ok(consultSessionService.listWaitingForDoctors());
     }
 
     @PostMapping("/consult/claim/{sessionId}")
+    @SaCheckPermission("doctor:consult:handle")
     public Result<Void> claim(@PathVariable Long sessionId) {
         long doctorId = StpUtil.getLoginIdAsLong();
         consultSessionService.claim(doctorId, sessionId);
@@ -36,6 +41,7 @@ public class DoctorController {
     }
 
     @GetMapping("/consult/sessions")
+    @SaCheckPermission("doctor:consult:list")
     public Result<List<ConsultSessionService.ConsultSessionVo>> listMySessions() {
         long doctorId = StpUtil.getLoginIdAsLong();
         return Result.ok(consultSessionService.listByDoctor(doctorId));
@@ -72,12 +78,14 @@ public class DoctorController {
     }
 
     @PostMapping("/prescriptions")
+    @SaCheckPermission("doctor:prescription:create")
     public Result<PrescriptionService.PrescriptionVo> createPrescription(@Valid @RequestBody PrescriptionDto dto) {
         long doctorId = StpUtil.getLoginIdAsLong();
         return Result.ok(prescriptionService.create(doctorId, dto));
     }
 
     @GetMapping("/prescriptions")
+    @SaCheckPermission("doctor:prescription:list")
     public Result<List<PrescriptionService.PrescriptionVo>> listPrescriptions() {
         long doctorId = StpUtil.getLoginIdAsLong();
         return Result.ok(prescriptionService.listByDoctor(doctorId));
