@@ -13,8 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchInfo() {
     try {
-      const data = await get<{ code?: number; token?: string; userId?: number; username?: string; role?: string; nickname?: string }>('/auth/info')
-      if (data.code === 401) return
+      const data = await get<{ token: string; userId: number; username: string; role: string; nickname?: string }>('/auth/info')
       if (data.token) token.value = data.token
       if (data.userId != null) userId.value = data.userId
       if (data.username) username.value = data.username

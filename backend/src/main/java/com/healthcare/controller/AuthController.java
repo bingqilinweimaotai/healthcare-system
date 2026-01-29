@@ -1,6 +1,7 @@
 package com.healthcare.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.healthcare.common.Result;
 import com.healthcare.dto.AuthDto;
 import com.healthcare.dto.RegisterDto;
 import com.healthcare.service.AuthService;
@@ -8,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -19,44 +19,33 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public Map<String, Object> login(@Valid @RequestBody AuthDto dto) {
-        return authService.login(dto);
+    public Result<Map<String, Object>> login(@Valid @RequestBody AuthDto dto) {
+        return Result.ok(authService.login(dto));
     }
 
     @PostMapping("/register")
-    public Map<String, Object> register(@Valid @RequestBody RegisterDto dto) {
+    public Result<Void> register(@Valid @RequestBody RegisterDto dto) {
         authService.register(dto);
-        Map<String, Object> r = new HashMap<>();
-        r.put("code", 200);
-        r.put("message", "注册成功");
-        return r;
+        return Result.ok();
     }
 
     @PostMapping("/logout")
-    public Map<String, Object> logout() {
+    public Result<Void> logout() {
         StpUtil.logout();
-        Map<String, Object> r = new HashMap<>();
-        r.put("code", 200);
-        r.put("message", "已退出");
-        return r;
+        return Result.ok();
     }
 
     @GetMapping("/info")
-    public Map<String, Object> info() {
-        if (!StpUtil.isLogin()) {
-            Map<String, Object> r = new HashMap<>();
-            r.put("code", 401);
-            r.put("message", "未登录");
-            return r;
-        }
+    public Result<Map<String, Object>> info() {
+        StpUtil.checkLogin();
         long userId = StpUtil.getLoginIdAsLong();
         String role = (String) StpUtil.getSession().get("role");
         String username = (String) StpUtil.getSession().get("username");
-        Map<String, Object> r = new HashMap<>();
-        r.put("userId", userId);
-        r.put("username", username);
-        r.put("role", role);
-        r.put("token", StpUtil.getTokenValue());
-        return r;
+        return Result.ok(Map.of(
+                "userId", userId,
+                "username", username,
+                "role", role,
+                "token", StpUtil.getTokenValue()
+        ));
     }
 }

@@ -1,6 +1,7 @@
 package com.healthcare.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.healthcare.common.Result;
 import com.healthcare.dto.ManualConsultDto;
 import com.healthcare.dto.PrescriptionDto;
 import com.healthcare.entity.Drug;
@@ -23,60 +24,61 @@ public class DoctorController {
     private final DrugMapper drugMapper;
 
     @GetMapping("/consult/waiting")
-    public List<ConsultSessionService.ConsultSessionVo> listWaiting() {
-        return consultSessionService.listWaitingForDoctors();
+    public Result<List<ConsultSessionService.ConsultSessionVo>> listWaiting() {
+        return Result.ok(consultSessionService.listWaitingForDoctors());
     }
 
     @PostMapping("/consult/claim/{sessionId}")
-    public void claim(@PathVariable Long sessionId) {
+    public Result<Void> claim(@PathVariable Long sessionId) {
         long doctorId = StpUtil.getLoginIdAsLong();
         consultSessionService.claim(doctorId, sessionId);
+        return Result.ok();
     }
 
     @GetMapping("/consult/sessions")
-    public List<ConsultSessionService.ConsultSessionVo> listMySessions() {
+    public Result<List<ConsultSessionService.ConsultSessionVo>> listMySessions() {
         long doctorId = StpUtil.getLoginIdAsLong();
-        return consultSessionService.listByDoctor(doctorId);
+        return Result.ok(consultSessionService.listByDoctor(doctorId));
     }
 
     @GetMapping("/consult/sessions/{sessionId}")
-    public ConsultSessionService.ConsultSessionVo getSession(@PathVariable Long sessionId) {
+    public Result<ConsultSessionService.ConsultSessionVo> getSession(@PathVariable Long sessionId) {
         long userId = StpUtil.getLoginIdAsLong();
-        return consultSessionService.getSession(userId, sessionId);
+        return Result.ok(consultSessionService.getSession(userId, sessionId));
     }
 
     @PostMapping("/consult/send")
-    public ConsultSessionService.ConsultSessionResult send(@Valid @RequestBody ManualConsultDto dto) {
+    public Result<ConsultSessionService.ConsultSessionResult> send(@Valid @RequestBody ManualConsultDto dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        return consultSessionService.sendMessage(userId, dto.getSessionId(), dto.getContent());
+        return Result.ok(consultSessionService.sendMessage(userId, dto.getSessionId(), dto.getContent()));
     }
 
     @GetMapping("/consult/sessions/{sessionId}/messages")
-    public List<ConsultSessionService.ConsultMessageVo> listMessages(@PathVariable Long sessionId) {
+    public Result<List<ConsultSessionService.ConsultMessageVo>> listMessages(@PathVariable Long sessionId) {
         long userId = StpUtil.getLoginIdAsLong();
-        return consultSessionService.listMessages(userId, sessionId);
+        return Result.ok(consultSessionService.listMessages(userId, sessionId));
     }
 
     @GetMapping("/drugs")
-    public List<Drug> listDrugs() {
-        return drugMapper.selectByStatusOrderByNameAsc(Drug.DrugStatus.ACTIVE.name());
+    public Result<List<Drug>> listDrugs() {
+        return Result.ok(drugMapper.selectByStatusOrderByNameAsc(Drug.DrugStatus.ACTIVE.name()));
     }
 
     @PostMapping("/prescriptions")
-    public PrescriptionService.PrescriptionVo createPrescription(@Valid @RequestBody PrescriptionDto dto) {
+    public Result<PrescriptionService.PrescriptionVo> createPrescription(@Valid @RequestBody PrescriptionDto dto) {
         long doctorId = StpUtil.getLoginIdAsLong();
-        return prescriptionService.create(doctorId, dto);
+        return Result.ok(prescriptionService.create(doctorId, dto));
     }
 
     @GetMapping("/prescriptions")
-    public List<PrescriptionService.PrescriptionVo> listPrescriptions() {
+    public Result<List<PrescriptionService.PrescriptionVo>> listPrescriptions() {
         long doctorId = StpUtil.getLoginIdAsLong();
-        return prescriptionService.listByDoctor(doctorId);
+        return Result.ok(prescriptionService.listByDoctor(doctorId));
     }
 
     @GetMapping("/prescriptions/{id}")
-    public PrescriptionService.PrescriptionVo getPrescription(@PathVariable Long id) {
+    public Result<PrescriptionService.PrescriptionVo> getPrescription(@PathVariable Long id) {
         long userId = StpUtil.getLoginIdAsLong();
-        return prescriptionService.get(id, userId, true);
+        return Result.ok(prescriptionService.get(id, userId, true));
     }
 }

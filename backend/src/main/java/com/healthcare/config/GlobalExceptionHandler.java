@@ -1,5 +1,9 @@
 package com.healthcare.config;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
+import com.healthcare.common.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,33 +20,38 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException e) {
+    public ResponseEntity<Result<Void>> handleRuntime(RuntimeException e) {
         log.warn("RuntimeException: {}", e.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("code", 400);
-        body.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Result.fail(400, e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException e) {
+    public ResponseEntity<Result<Void>> handleValidation(MethodArgumentNotValidException e) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError err : e.getBindingResult().getFieldErrors()) {
             errors.put(err.getField(), err.getDefaultMessage());
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put("code", 400);
-        body.put("message", "参数校验失败");
-        body.put("errors", errors);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Result.fail(400, "参数校验失败", errors));
+    }
+
+    @ExceptionHandler(NotLoginException.class)
+    public ResponseEntity<Result<Void>> handleNotLogin(NotLoginException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Result.fail(401, "未登录"));
+    }
+
+    @ExceptionHandler({NotRoleException.class, NotPermissionException.class})
+    public ResponseEntity<Result<Void>> handleForbidden(Exception e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Result.fail(403, "无权限"));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleOther(Exception e) {
+    public ResponseEntity<Result<Void>> handleOther(Exception e) {
         log.error("Unhandled exception", e);
-        Map<String, Object> body = new HashMap<>();
-        body.put("code", 500);
-        body.put("message", "服务器内部错误");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Result.fail(500, "服务器内部错误"));
     }
 }

@@ -22,6 +22,7 @@ com\healthcare\entity\AiSession.class
 com\healthcare\HealthcareApplication.class
 com\healthcare\service\AiConsultService.class
 com\healthcare\controller\AdminController.class
+com\healthcare\common\Result.class
 com\healthcare\config\WebMvcConfig.class
 com\healthcare\dto\AuthDto.class
 com\healthcare\entity\AiSession$SessionStatus.class
