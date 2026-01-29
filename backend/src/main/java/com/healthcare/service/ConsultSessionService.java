@@ -2,9 +2,11 @@ package com.healthcare.service;
 
 import com.healthcare.entity.ConsultMessage;
 import com.healthcare.entity.ConsultSession;
+import com.healthcare.entity.DoctorProfile;
 import com.healthcare.entity.User;
 import com.healthcare.mapper.ConsultMessageMapper;
 import com.healthcare.mapper.ConsultSessionMapper;
+import com.healthcare.mapper.DoctorProfileMapper;
 import com.healthcare.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class ConsultSessionService {
     private final ConsultSessionMapper consultSessionMapper;
     private final ConsultMessageMapper consultMessageMapper;
     private final UserMapper userMapper;
+    private final DoctorProfileMapper doctorProfileMapper;
     private final WebSocketNotifyService notifyService;
 
     @Transactional
@@ -185,8 +188,23 @@ public class ConsultSessionService {
         User patient = userMapper.selectById(s.getPatientId());
         v.setPatientName(patient != null ? (patient.getNickname() != null ? patient.getNickname() : patient.getUsername()) : null);
         if (s.getDoctorId() != null) {
-            User doctor = userMapper.selectById(s.getDoctorId());
-            v.setDoctorName(doctor != null ? doctor.getUsername() : null);
+            Long doctorId = s.getDoctorId();
+            // 优先展示医生档案里的真实姓名，其次昵称，最后用户名
+            String doctorName = null;
+            DoctorProfile dp = doctorProfileMapper.selectByUserId(doctorId);
+            if (dp != null && dp.getRealName() != null && !dp.getRealName().isBlank()) {
+                doctorName = dp.getRealName();
+            } else {
+                User doctor = userMapper.selectById(doctorId);
+                if (doctor != null) {
+                    if (doctor.getNickname() != null && !doctor.getNickname().isBlank()) {
+                        doctorName = doctor.getNickname();
+                    } else {
+                        doctorName = doctor.getUsername();
+                    }
+                }
+            }
+            v.setDoctorName(doctorName);
         }
         return v;
     }

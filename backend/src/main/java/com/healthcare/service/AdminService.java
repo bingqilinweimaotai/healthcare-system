@@ -67,6 +67,22 @@ public class AdminService {
         userMapper.updateStatus(id, status.name());
     }
 
+    /**
+     * 管理员编辑用户基础信息（昵称、手机号、角色、头像）
+     */
+    @Transactional
+    public void updateUser(Long id, com.healthcare.dto.AdminUserUpdateDto dto) {
+        User u = userMapper.selectById(id);
+        if (u == null) throw new RuntimeException("用户不存在");
+        if (dto.getNickname() != null) u.setNickname(dto.getNickname());
+        if (dto.getPhone() != null) u.setPhone(dto.getPhone());
+        if (dto.getAvatar() != null) u.setAvatar(dto.getAvatar());
+        if (dto.getRole() != null) {
+            u.setRole(User.Role.valueOf(dto.getRole()));
+        }
+        userMapper.update(u);
+    }
+
     public Page<DoctorVo> listDoctors(int page, int size, String keyword, String auditStatus) {
         List<DoctorProfile> all = doctorProfileMapper.selectAll();
         if (auditStatus != null && !auditStatus.isBlank()) {
@@ -134,6 +150,21 @@ public class AdminService {
     public void updateDoctorStatus(Long userId, User.UserStatus status) {
         if (userMapper.selectById(userId) == null) throw new RuntimeException("用户不存在");
         userMapper.updateStatus(userId, status.name());
+    }
+
+    /**
+     * 管理员编辑医生档案信息
+     */
+    @Transactional
+    public void updateDoctor(Long id, com.healthcare.dto.AdminDoctorUpdateDto dto) {
+        DoctorProfile dp = doctorProfileMapper.selectById(id);
+        if (dp == null) throw new RuntimeException("医生不存在");
+        if (dto.getRealName() != null) dp.setRealName(dto.getRealName());
+        if (dto.getHospital() != null) dp.setHospital(dto.getHospital());
+        if (dto.getDepartment() != null) dp.setDepartment(dto.getDepartment());
+        if (dto.getTitle() != null) dp.setTitle(dto.getTitle());
+        if (dto.getLicenseNo() != null) dp.setLicenseNo(dto.getLicenseNo());
+        doctorProfileMapper.update(dp);
     }
 
     public Page<Drug> listDrugs(int page, int size, String keyword) {
@@ -207,10 +238,25 @@ public class AdminService {
         }
         List<Map<String, Object>> doctorStats = new ArrayList<>();
         for (Map.Entry<Long, Long> e : byDoctor.entrySet()) {
+            Long doctorUserId = e.getKey();
             Map<String, Object> row = new HashMap<>();
-            row.put("doctorId", e.getKey());
-            User u = userMapper.selectById(e.getKey());
-            if (u != null) row.put("doctorName", u.getUsername());
+            row.put("doctorId", doctorUserId);
+            // 优先使用医生真实姓名，其次昵称，最后用户名
+            String name = null;
+            DoctorProfile dp = doctorProfileMapper.selectByUserId(doctorUserId);
+            if (dp != null && dp.getRealName() != null && !dp.getRealName().isBlank()) {
+                name = dp.getRealName();
+            } else {
+                User u = userMapper.selectById(doctorUserId);
+                if (u != null) {
+                    if (u.getNickname() != null && !u.getNickname().isBlank()) {
+                        name = u.getNickname();
+                    } else {
+                        name = u.getUsername();
+                    }
+                }
+            }
+            row.put("doctorName", name);
             row.put("count", e.getValue());
             doctorStats.add(row);
         }

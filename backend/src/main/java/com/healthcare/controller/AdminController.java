@@ -3,6 +3,8 @@ package com.healthcare.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.healthcare.common.Result;
+import com.healthcare.dto.AdminDoctorUpdateDto;
+import com.healthcare.dto.AdminUserUpdateDto;
 import com.healthcare.dto.DrugDto;
 import com.healthcare.entity.DoctorProfile;
 import com.healthcare.entity.User;
@@ -36,6 +38,13 @@ public class AdminController {
         return Result.ok(adminService.getUser(id));
     }
 
+    @PutMapping("/users/{id}")
+    @SaCheckPermission("admin:user:update")
+    public Result<Void> updateUser(@PathVariable Long id, @RequestBody AdminUserUpdateDto dto) {
+        adminService.updateUser(id, dto);
+        return Result.ok();
+    }
+
     @PutMapping("/users/{id}/status")
     @SaCheckPermission("admin:user:update")
     public Result<Void> updateUserStatus(@PathVariable Long id, @RequestParam String status) {
@@ -56,6 +65,13 @@ public class AdminController {
     @GetMapping("/doctors/{id}")
     public Result<AdminService.DoctorVo> getDoctor(@PathVariable Long id) {
         return Result.ok(adminService.getDoctor(id));
+    }
+
+    @PutMapping("/doctors/{id}")
+    @SaCheckPermission("admin:doctor:update")
+    public Result<Void> updateDoctor(@PathVariable Long id, @RequestBody AdminDoctorUpdateDto dto) {
+        adminService.updateDoctor(id, dto);
+        return Result.ok();
     }
 
     @PutMapping("/doctors/{id}/audit")

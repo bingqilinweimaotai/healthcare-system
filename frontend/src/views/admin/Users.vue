@@ -22,8 +22,9 @@
         <el-table-column prop="createdAt" label="注册时间" width="180">
           <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
+            <el-button type="primary" link @click="openEdit(row)">编辑</el-button>
             <el-button
               v-if="row.status === 'NORMAL'"
               type="danger"
@@ -49,12 +50,36 @@
         @current-change="load"
         @size-change="load"
       />
+      <el-dialog v-model="editVisible" title="编辑用户" width="480px">
+        <el-form :model="editForm" label-width="90px">
+          <el-form-item label="用户名">
+            <el-input v-model="editForm.username" disabled />
+          </el-form-item>
+          <el-form-item label="昵称">
+            <el-input v-model="editForm.nickname" />
+          </el-form-item>
+          <el-form-item label="手机号">
+            <el-input v-model="editForm.phone" />
+          </el-form-item>
+          <el-form-item label="角色">
+            <el-select v-model="editForm.role" style="width: 180px">
+              <el-option label="患者" value="PATIENT" />
+              <el-option label="医生" value="DOCTOR" />
+              <el-option label="管理员" value="ADMIN" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="editVisible = false">取 消</el-button>
+          <el-button type="primary" :loading="saving" @click="saveEdit">保 存</el-button>
+        </template>
+      </el-dialog>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { get, put } from '@/api/request'
 import { ElMessage } from 'element-plus'
 
@@ -64,6 +89,15 @@ const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const list = ref<any[]>([])
+const editVisible = ref(false)
+const saving = ref(false)
+const editingId = ref<number | null>(null)
+const editForm = reactive<any>({
+  username: '',
+  nickname: '',
+  phone: '',
+  role: '',
+})
 
 function userStatusText(s: string) {
   const m: Record<string, string> = { NORMAL: '正常', DISABLED: '禁用', PENDING: '待审核' }
@@ -98,6 +132,34 @@ async function updateStatus(id: number, s: string) {
     load()
   } catch (e: any) {
     ElMessage.error(e?.message ?? '操作失败')
+  }
+}
+
+function openEdit(row: any) {
+  editingId.value = row.id
+  editForm.username = row.username
+  editForm.nickname = row.nickname
+  editForm.phone = row.phone
+  editForm.role = row.role
+  editVisible.value = true
+}
+
+async function saveEdit() {
+  if (!editingId.value) return
+  saving.value = true
+  try {
+    await put(`/admin/users/${editingId.value}`, {
+      nickname: editForm.nickname,
+      phone: editForm.phone,
+      role: editForm.role,
+    })
+    ElMessage.success('保存成功')
+    editVisible.value = false
+    load()
+  } catch (e: any) {
+    ElMessage.error(e?.message ?? '保存失败')
+  } finally {
+    saving.value = false
   }
 }
 

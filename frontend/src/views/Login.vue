@@ -41,13 +41,14 @@ async function submit() {
   await formRef.value?.validate().catch(() => {})
   loading.value = true
   try {
-    const data = await post<{ token: string; userId: number; username: string; role: string; nickname?: string }>('/auth/login', form)
+    const data = await post<{ token: string; userId: number; username: string; role: string; nickname?: string; avatar?: string }>('/auth/login', form)
     auth.setLogin({
       token: data.token,
       userId: data.userId,
       username: data.username,
       role: data.role as any,
       nickname: data.nickname,
+      avatar: data.avatar,
     })
     ElMessage.success('登录成功')
     router.replace('/')

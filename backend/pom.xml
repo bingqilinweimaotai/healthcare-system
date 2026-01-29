@@ -102,6 +102,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Tencent Cloud COS SDK，用于头像文件上传 -->
+        <dependency>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+            <version>5.6.261</version>
+        </dependency>
     </dependencies>
 
     <build>

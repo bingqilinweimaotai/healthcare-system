@@ -5,6 +5,7 @@ import com.healthcare.common.Result;
 import com.healthcare.dto.PasswordChangeDto;
 import com.healthcare.dto.UserProfileDto;
 import com.healthcare.service.UserService;
+import com.healthcare.service.CosService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final CosService cosService;
 
     @GetMapping("/profile")
     public Result<UserService.UserProfileVo> getProfile() {
@@ -37,6 +39,17 @@ public class UserController {
         long userId = StpUtil.getLoginIdAsLong();
         userService.changePassword(userId, dto);
         return Result.ok();
+    }
+
+    /**
+     * 上传头像文件到腾讯云 COS，返回头像 URL
+     */
+    @PostMapping("/avatar")
+    public Result<String> uploadAvatar(@RequestPart("file") org.springframework.web.multipart.MultipartFile file) {
+        StpUtil.checkLogin();
+        long userId = StpUtil.getLoginIdAsLong();
+        String url = cosService.uploadAvatar(userId, file);
+        return Result.ok(url);
     }
 }
 

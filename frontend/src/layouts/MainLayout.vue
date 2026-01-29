@@ -14,17 +14,20 @@
           <el-menu-item index="/patient/ai-consult">AI 问诊</el-menu-item>
           <el-menu-item index="/patient/manual-consult">人工咨询</el-menu-item>
           <el-menu-item index="/patient/history">问诊记录</el-menu-item>
+          <el-menu-item index="/patient/profile">个人信息</el-menu-item>
         </template>
         <template v-else-if="auth.role === 'DOCTOR'">
           <el-menu-item index="/doctor/dashboard">工作台</el-menu-item>
           <el-menu-item index="/doctor/sessions">会话管理</el-menu-item>
           <el-menu-item index="/doctor/prescriptions">处方记录</el-menu-item>
+          <el-menu-item index="/doctor/profile">个人信息</el-menu-item>
         </template>
         <template v-else-if="auth.role === 'ADMIN'">
           <el-menu-item index="/admin/dashboard">数据概览</el-menu-item>
           <el-menu-item index="/admin/users">用户管理</el-menu-item>
           <el-menu-item index="/admin/doctors">医生管理</el-menu-item>
           <el-menu-item index="/admin/drugs">药品管理</el-menu-item>
+          <el-menu-item index="/admin/profile">个人信息</el-menu-item>
         </template>
       </el-menu>
     </el-aside>
@@ -64,8 +67,23 @@
             <el-form-item label="手机号">
               <el-input v-model="profileForm.phone" />
             </el-form-item>
-            <el-form-item label="头像链接">
-              <el-input v-model="profileForm.avatar" placeholder="请输入头像图片的网络地址" />
+            <el-form-item label="头像">
+              <div class="avatar-row">
+                <el-avatar
+                  :size="48"
+                  :src="profileForm.avatar || auth.avatar || defaultAvatar"
+                >
+                  {{ (auth.nickname || auth.username || '?').charAt(0).toUpperCase() }}
+                </el-avatar>
+                <el-upload
+                  class="avatar-uploader"
+                  :show-file-list="false"
+                  :http-request="handleAvatarUpload"
+                  accept="image/*"
+                >
+                  <el-button type="primary" link>选择图片并上传</el-button>
+                </el-upload>
+              </div>
             </el-form-item>
             <template v-if="auth.role === 'DOCTOR'">
               <el-form-item label="姓名">
@@ -213,6 +231,25 @@ async function saveProfile() {
   }
 }
 
+async function handleAvatarUpload(option: any) {
+  const file = option.file as File
+  if (!file) return
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const url = await post<string>('/user/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    profileForm.avatar = url
+    auth.avatar = url
+    ElMessage.success('头像上传成功')
+  } catch (e: any) {
+    ElMessage.error(e?.message ?? '头像上传失败')
+  } finally {
+    option.onSuccess?.({}, file)
+  }
+}
+
 function handleUserCommand(cmd: string) {
   if (cmd === 'logout') {
     handleLogout()
@@ -238,4 +275,9 @@ function handleUserCommand(cmd: string) {
 .user { display: flex; align-items: center; gap: 12px; }
 .user-trigger { cursor: pointer; display: inline-flex; align-items: center; }
 .main { background: #f7fafc; padding: 24px; overflow: auto; }
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 </style>

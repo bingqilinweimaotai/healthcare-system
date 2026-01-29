@@ -26,15 +26,18 @@ const router = createRouter({
         { path: 'patient/ai-consult', name: 'AiConsult', component: () => import('@/views/patient/AiConsult.vue') },
         { path: 'patient/manual-consult', name: 'ManualConsult', component: () => import('@/views/patient/ManualConsult.vue') },
         { path: 'patient/history', name: 'PatientHistory', component: () => import('@/views/patient/History.vue') },
+        { path: 'patient/profile', name: 'PatientProfile', component: () => import('@/views/profile/Profile.vue') },
         // 医生端
         { path: 'doctor/dashboard', name: 'DoctorDashboard', component: () => import('@/views/doctor/Dashboard.vue') },
         { path: 'doctor/sessions', name: 'DoctorSessions', component: () => import('@/views/doctor/Sessions.vue') },
         { path: 'doctor/prescriptions', name: 'DoctorPrescriptions', component: () => import('@/views/doctor/Prescriptions.vue') },
+        { path: 'doctor/profile', name: 'DoctorProfile', component: () => import('@/views/profile/Profile.vue') },
         // 管理端
         { path: 'admin/dashboard', name: 'AdminDashboard', component: () => import('@/views/admin/Dashboard.vue') },
         { path: 'admin/users', name: 'AdminUsers', component: () => import('@/views/admin/Users.vue') },
         { path: 'admin/doctors', name: 'AdminDoctors', component: () => import('@/views/admin/Doctors.vue') },
         { path: 'admin/drugs', name: 'AdminDrugs', component: () => import('@/views/admin/Drugs.vue') },
+        { path: 'admin/profile', name: 'AdminProfile', component: () => import('@/views/profile/Profile.vue') },
       ],
     },
   ],
