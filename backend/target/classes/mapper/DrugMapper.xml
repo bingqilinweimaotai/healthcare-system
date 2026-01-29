@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.healthcare.mapper.DrugMapper">
+
+    <resultMap id="BaseResultMap" type="com.healthcare.entity.Drug">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="spec" property="spec"/>
+        <result column="unit" property="unit"/>
+        <result column="usage_instruction" property="usageInstruction"/>
+        <result column="status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO drug (name, spec, unit, usage_instruction, status, created_at, updated_at)
+        VALUES (#{name}, #{spec}, #{unit}, #{usageInstruction}, #{status}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE drug
+        SET name = #{name}, spec = #{spec}, unit = #{unit}, usage_instruction = #{usageInstruction},
+            status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM drug WHERE id = #{id}
+    </select>
+
+    <select id="selectByStatusOrderByNameAsc" resultMap="BaseResultMap">
+        SELECT * FROM drug WHERE status = #{status} ORDER BY name ASC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM drug ORDER BY name ASC
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM drug
+    </select>
+</mapper>

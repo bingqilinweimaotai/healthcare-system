@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.healthcare.mapper.ConsultMessageMapper">
+
+    <resultMap id="BaseResultMap" type="com.healthcare.entity.ConsultMessage">
+        <id column="id" property="id"/>
+        <result column="session_id" property="sessionId"/>
+        <result column="sender_type" property="senderType" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="sender_id" property="senderId"/>
+        <result column="content" property="content"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO consult_message (session_id, sender_type, sender_id, content, created_at)
+        VALUES (#{sessionId}, #{senderType}, #{senderId}, #{content}, NOW())
+    </insert>
+
+    <select id="selectBySessionIdOrderByCreatedAtAsc" resultMap="BaseResultMap">
+        SELECT * FROM consult_message WHERE session_id = #{sessionId} ORDER BY created_at ASC
+    </select>
+</mapper>

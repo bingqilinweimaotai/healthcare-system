@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: healthcare-backend
+  datasource:
+    url: jdbc:mysql://118.25.16.103:3306/biyeshixi?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: "202203401290"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      continue-on-error: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.healthcare.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# Sa-Token（前端请求头传 Authorization: <token>，不要求 Bearer 前缀）
+sa-token:
+  token-name: Authorization
+  token-prefix: ""
+  timeout: 2592000
+  active-timeout: -1
+  is-concurrent: true
+  is-share: true
+  token-style: uuid
+  is-log: false
+
+# LangChain4j OpenAI（需配置 OPENAI_API_KEY 环境变量或下方 api-key）
+# 若未配置，AI问诊将返回模拟回复，仅用于演示
+langchain4j:
+  open-ai:
+    chat-model:
+      api-key: ${OPENAI_API_KEY:}
+      model-name: gpt-3.5-turbo
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+
+logging:
+  level:
+    root: INFO
+    com.healthcare: DEBUG
